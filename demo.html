@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Try the Model — Credit Expansion Engine</title>
+<meta name="description" content="Score a sample application against the real, trained credit-risk model — live, with a full explanation of every input and output.">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .demo-layout { display: grid; grid-template-columns: 1fr 380px; gap: 40px; max-width: var(--maxw-wide); margin: 0 auto; padding: 40px 28px 80px; align-items: start; }
+  @media (max-width: 980px) { .demo-layout { grid-template-columns: 1fr; } }
+
+  fieldset { border: none; padding: 0; margin: 0 0 32px 0; }
+  legend { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; padding: 0; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+  @media (max-width: 560px) { .field-grid { grid-template-columns: 1fr; } }
+
+  .f { display: flex; flex-direction: column; gap: 5px; }
+  .f label { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .f .help { font-size: 12px; color: var(--ink-faint); line-height: 1.4; }
+  .f input, .f select {
+    font-family: var(--sans); font-size: 14px; color: var(--ink);
+    background: var(--panel); border: 1px solid var(--rule-strong);
+    border-radius: 3px; padding: 9px 11px;
+  }
+  .f input:focus, .f select:focus { border-color: var(--gold); outline: none; }
+
+  .sticky-panel { position: sticky; top: 90px; }
+  .result-card { background: var(--panel); border: 1px solid var(--rule); padding: 24px; }
+  .result-card.empty { color: var(--ink-faint); font-size: 14px; text-align: center; padding: 50px 24px; }
+  .pd-gauge { margin: 16px 0; }
+  .pd-gauge .track { height: 10px; background: var(--rule); border-radius: 5px; overflow: hidden; }
+  .pd-gauge .fill { height: 100%; background: var(--ink); border-radius: 5px; transition: width 0.4s ease; }
+  .pd-gauge .marks { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); margin-top: 4px; }
+  .pd-number { font-family: var(--mono); font-size: 30px; font-weight: 600; margin: 4px 0; }
+
+  .how-panel { background: var(--panel); border: 1px solid var(--rule); padding: 22px; margin-top: 20px; }
+  .how-panel h3 { font-size: 15px; margin-bottom: 10px; }
+  .how-panel ol { margin: 0; padding-left: 20px; font-size: 13px; color: var(--ink-soft); }
+  .how-panel li { margin-bottom: 6px; }
+
+  .api-config { font-size: 12px; color: var(--ink-faint); margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--rule-strong); }
+  .api-config code { background: var(--gold-bg); padding: 1px 5px; border-radius: 2px; }
+
+  .submit-row { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .error-box { background: var(--correction-bg); border: 1px solid #E7C7C0; color: var(--correction); padding: 14px 16px; border-radius: 3px; font-size: 13.5px; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a href="index.html" class="brand">CREDIT EXPANSION ENGINE <span>/ LIVE DEMO</span></a>
+    <nav class="topnav">
+      <a href="index.html">← Back to case file</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero" style="padding-bottom:32px;">
+  <div class="wrap-wide">
+    <div class="case-stamp reveal">Live scoring endpoint</div>
+    <h1 class="reveal" style="max-width:20ch;">Score a real application</h1>
+    <p class="dek reveal">This form sends your inputs to the actual trained model — the same calibrated logistic regression, decision threshold, and reason-code pipeline documented in the case file. Every field below explains what it means and why the model uses it.</p>
+  </div>
+</header>
+
+<div class="demo-layout">
+  <main>
+    <form id="score-form">
+      <fieldset>
+        <legend>Loan Details</legend>
+        <div class="field-grid">
+          <div class="f">
+            <label for="loan_amnt">Requested loan amount ($)</label>
+            <span class="help">The total amount the applicant is asking to borrow.</span>
+            <input type="number" id="loan_amnt" min="500" step="100" value="12000" required>
+          </div>
+          <div class="f">
+            <label for="int_rate">Interest rate (APR %)</label>
+            <span class="help">The rate assigned to this loan. Higher-risk grades typically carry higher rates.</span>
+            <input type="number" id="int_rate" min="0" max="40" step="0.01" value="13.5" required>
+          </div>
+          <div class="f">
+            <label for="installment">Monthly installment ($)</label>
+            <span class="help">The fixed monthly payment for a 36-month term at the rate above.</span>
+            <input type="number" id="installment" min="1" step="0.01" value="407.23" required>
+          </div>
+          <div class="f">
+            <label for="purpose">Loan purpose</label>
+            <span class="help">What the funds will be used for.</span>
+            <select id="purpose">
+              <option value="debt_consolidation" selected>Debt consolidation</option>
+              <option value="credit_card">Credit card refinancing</option>
+              <option value="home_improvement">Home improvement</option>
+              <option value="major_purchase">Major purchase</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="grade">Preliminary risk grade</label>
+            <span class="help">The platform's own initial risk category (A = strongest credit profile, G = weakest) — assigned before this model runs.</span>
+            <select id="grade">
+              <option>A</option><option>B</option><option selected>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="sub_grade">Preliminary sub-grade</label>
+            <span class="help">A finer-grained split within the grade above (1 = strongest within the grade).</span>
+            <select id="sub_grade">
+              <option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Applicant Profile</legend>
+        <div class="field-grid">
+          <div class="f">
+            <label for="annual_inc">Annual income ($)</label>
+            <span class="help">Self-reported gross annual income.</span>
+            <input type="number" id="annual_inc" min="0" step="1000" value="55000" required>
+          </div>
+          <div class="f">
+            <label for="home_ownership">Home ownership</label>
+            <span class="help">Whether the applicant rents, owns, or has a mortgage.</span>
+            <select id="home_ownership">
+              <option value="RENT" selected>Rent</option>
+              <option value="OWN">Own</option>
+              <option value="MORTGAGE">Mortgage</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="emp_length">Employment length</label>
+            <span class="help">How long the applicant has held their current job.</span>
+            <select id="emp_length">
+              <option value="< 1 year">Less than 1 year</option>
+              <option value="1 year">1 year</option>
+              <option value="2 years">2 years</option>
+              <option value="3 years">3 years</option>
+              <option value="5 years" selected>5 years</option>
+              <option value="10+ years">10+ years</option>
+            </select>
+          </div>
+          <div class="f">
+            <label for="verification_status">Income verification</label>
+            <span class="help">Whether income was independently verified before this application.</span>
+            <select id="verification_status">
+              <option value="Verified" selected>Verified</option>
+              <option value="Source Verified">Source verified</option>
+              <option value="Not Verified">Not verified</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Credit Report</legend>
+        <div class="field-grid">
+          <div class="f">
+            <label for="fico">Estimated FICO score</label>
+            <span class="help">A standard credit bureau score. The model uses the 4-point range LendingClub reports (this value and +4).</span>
+            <input type="number" id="fico" min="300" max="850" step="1" value="682" required>
+          </div>
+          <div class="f">
+            <label for="dti">Debt-to-income ratio (%)</label>
+            <span class="help">Monthly debt payments as a percentage of monthly income. Higher means less room to take on this loan.</span>
+            <input type="number" id="dti" min="0" max="100" step="0.1" value="22.4" required>
+          </div>
+          <div class="f">
+            <label for="revol_util">Revolving credit utilization (%)</label>
+            <span class="help">How much of available revolving credit (e.g. credit cards) is currently in use.</span>
+            <input type="number" id="revol_util" min="0" max="150" step="0.1" value="48.2" required>
+          </div>
+          <div class="f">
+            <label for="revol_bal">Revolving balance ($)</label>
+            <span class="help">Total current balance across revolving credit accounts.</span>
+            <input type="number" id="revol_bal" min="0" step="1" value="9500" required>
+          </div>
+          <div class="f">
+            <label for="delinq_2yrs">Delinquencies (past 2 years)</label>
+            <span class="help">Number of past-due payments (30+ days) in the last two years.</span>
+            <input type="number" id="delinq_2yrs" min="0" step="1" value="0" required>
+          </div>
+          <div class="f">
+            <label for="inq_last_6mths">Credit inquiries (past 6 months)</label>
+            <span class="help">Number of times a lender has checked this applicant's credit recently — a lot can signal financial stress.</span>
+            <input type="number" id="inq_last_6mths" min="0" step="1" value="1" required>
+          </div>
+          <div class="f">
+            <label for="open_acc">Open credit accounts</label>
+            <span class="help">Number of currently open credit lines.</span>
+            <input type="number" id="open_acc" min="0" step="1" value="8" required>
+          </div>
+          <div class="f">
+            <label for="total_acc">Total credit accounts (lifetime)</label>
+            <span class="help">Total credit lines ever opened, open or closed — a proxy for credit history length.</span>
+            <input type="number" id="total_acc" min="0" step="1" value="18" required>
+          </div>
+          <div class="f">
+            <label for="pub_rec">Public records</label>
+            <span class="help">Number of derogatory public records (e.g. bankruptcies, liens).</span>
+            <input type="number" id="pub_rec" min="0" step="1" value="0" required>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="submit-row">
+        <button type="submit" class="btn btn-primary" id="submit-btn">Score this application →</button>
+        <button type="button" class="btn btn-ghost" id="reset-btn">Reset to example</button>
+      </div>
+      <div id="form-error"></div>
+    </form>
+  </main>
+
+  <aside class="sticky-panel">
+    <div id="result-container">
+      <div class="result-card empty" id="result-empty">
+        Fill in the form and click "Score this application" to see a real decision from the trained model.
+      </div>
+    </div>
+
+    <div class="how-panel">
+      <h3>How this works</h3>
+      <ol>
+        <li>Your inputs are engineered into the same 19 features the model was trained on.</li>
+        <li>The calibrated logistic regression model outputs a probability of default (PD).</li>
+        <li>If PD is below the validated threshold (0.430), the application is approved.</li>
+        <li>If declined, SHAP identifies the drivers, mapped through an approved reason-code taxonomy — never raw model internals.</li>
+      </ol>
+      <div class="api-config">
+        Calling <code id="api-url-display">not configured</code>. This demo requires the FastAPI backend to be deployed and reachable — see <code>script.js</code> to set the endpoint.
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap-wide">
+    <div class="fnote">Credit Expansion Engine — built on public LendingClub data. Not a real lending product.</div>
+    <div class="flinks">
+      <a href="index.html">Case file</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

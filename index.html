@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit Expansion Engine — Case File</title>
+<meta name="description" content="An audited AI credit-decisioning case file: second-look loan expansion, validated pricing, and compliant explainability — built on 2.26M real consumer loans, with every correction documented.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a href="index.html" class="brand">CREDIT EXPANSION ENGINE <span>/ CASE FILE</span></a>
+    <nav class="topnav">
+      <a href="#problem">Problem</a>
+      <a href="#findings">Findings</a>
+      <a href="#honesty">Honesty</a>
+      <a href="demo.html" class="cta">Try the model →</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="case-stamp reveal">Status: Complete — 6 phases, 2 corrections logged</div>
+    <h1 class="reveal">An AI credit-decisioning system, audited end to end</h1>
+    <p class="dek reveal">Second-look loan expansion, validated pricing, and compliant explainability — built on 2.26 million real consumer loans. This page documents what was found, including two conclusions that turned out to be wrong at first, and how they were corrected.</p>
+
+    <div class="case-meta reveal">
+      <div class="field">
+        <div class="label">Loans analyzed</div>
+        <div class="value">2,260,701</div>
+      </div>
+      <div class="field">
+        <div class="label">Validated opportunity</div>
+        <div class="value gold">$1.15B</div>
+      </div>
+      <div class="field">
+        <div class="label">Corrections logged</div>
+        <div class="value">2 major</div>
+      </div>
+      <div class="field">
+        <div class="label">Open findings</div>
+        <div class="value approved">1, disclosed</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="doc-layout">
+  <aside class="rail">
+    <div class="rail-inner">
+      <div class="rail-title">Case Sections</div>
+      <a href="#problem">§01 The problem</a>
+      <a href="#scope">§02 Scope &amp; data</a>
+      <a href="#model">§03 Model development</a>
+      <a href="#calibration">§04 Calibration</a>
+      <a href="#findings">§05 Flagship finding</a>
+      <a href="#rigor">§06 Process rigor</a>
+      <a href="#validation">§07 Real-dollar validation</a>
+      <a href="#compliance">§08 Explainability</a>
+      <a href="#honesty">§09 Fairness finding</a>
+      <a href="#try">§10 Try the model</a>
+    </div>
+  </aside>
+
+  <main class="doc-main">
+
+    <section class="section" id="problem">
+      <div class="section-tag">§01 — The Problem</div>
+      <h2 class="reveal">Traditional underwriting leaves money on the table</h2>
+      <p class="lede reveal">A blunt cutoff-based approval policy can't distinguish a borderline-risky applicant from a genuinely bad one — it just declines both. Commercial lenders (Upstart, Zest AI) report expanding approvals at equal or lower loss rates using data-driven decisions rather than a fixed cutoff. This project builds the same capability end to end, on public data, so every step is inspectable.</p>
+    </section>
+
+    <section class="section" id="scope">
+      <div class="section-tag">§02 — Scope &amp; Data</div>
+      <h2 class="reveal">From 2.26M raw records to a validated population</h2>
+      <p class="lede reveal">LendingClub accepted and rejected loan applications, 2007–2018. The modeling population was narrowed in stages, each one a documented decision, not a default.</p>
+
+      <table class="ledger reveal">
+        <caption>Population narrowing (accepted loans)</caption>
+        <thead>
+          <tr><th>Stage</th><th class="num">Rows</th><th class="num">Default rate</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="label-cell">Raw accepted-loans file</td><td class="num">2,260,701</td><td class="num">—</td></tr>
+          <tr><td class="label-cell">Terminal-status population (resolved outcome)</td><td class="num">1,348,099</td><td class="num">20.0%</td></tr>
+          <tr><td class="label-cell">Matured population (36-mo term, 2007–2015)</td><td class="num">621,022</td><td class="num">13.9%</td></tr>
+          <tr class="highlight"><td class="label-cell">Train / Calibration / Test split</td><td class="num">175,426 / 162,570 / 283,026</td><td class="num">12.6% / 13.7% / 14.9%</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note reveal"><strong>Why the population shrank this much:</strong> loans issued after ~2015, and all 60-month loans, hadn't had time to reach natural maturity by the dataset's snapshot date. A loan showing "Fully Paid" from an immature vintage got there via early payoff — a biased sample of good borrowers — while defaults can happen any time and aren't biased the same way. Confirmed empirically: restricting to matured loans dropped the apparent default rate from 20.0% to 13.9%, exactly the direction the hypothesis predicted.</div>
+    </section>
+
+    <section class="section" id="model">
+      <div class="section-tag">§03 — Model Development</div>
+      <h2 class="reveal">Four model families, one clear ceiling</h2>
+      <p class="lede reveal">Logistic regression, gradient boosting, and XGBoost were compared first — but boosting and XGBoost are the same underlying mechanism. Random Forest was added specifically to test the "feature ceiling" claim against a genuinely different method: bagging, not boosting.</p>
+
+      <div class="chart-block reveal">
+        <svg viewBox="0 0 640 260" width="100%" role="img" aria-label="Bar chart: test AUC by model. Logistic Regression 0.6811, Gradient Boosting 0.6808, XGBoost 0.6816, Random Forest 0.6797. All four cluster tightly around 0.68.">
+          <line x1="60" y1="210" x2="620" y2="210" stroke="#C4C6BC" stroke-width="1"/>
+          <text x="50" y="214" text-anchor="end" font-family="IBM Plex Mono" font-size="11" fill="#8A8F9E">0.66</text>
+          <line x1="60" y1="20" x2="620" y2="20" stroke="#DBDCD5" stroke-width="1" stroke-dasharray="2,3"/>
+          <text x="50" y="24" text-anchor="end" font-family="IBM Plex Mono" font-size="11" fill="#8A8F9E">0.69</text>
+
+          <g font-family="IBM Plex Mono" font-size="12" fill="#14182A">
+            <rect x="100" y="132.3" width="90" height="77.7" fill="#14182A"></rect>
+            <text x="145" y="122" text-anchor="middle" font-weight="600">0.6811</text>
+            <text x="145" y="232" text-anchor="middle" font-size="11" fill="#4B5163">Logistic</text>
+            <text x="145" y="246" text-anchor="middle" font-size="11" fill="#4B5163">Regression</text>
+
+            <rect x="240" y="134.2" width="90" height="75.8" fill="#14182A"></rect>
+            <text x="285" y="124" text-anchor="middle" font-weight="600">0.6808</text>
+            <text x="285" y="232" text-anchor="middle" font-size="11" fill="#4B5163">Gradient</text>
+            <text x="285" y="246" text-anchor="middle" font-size="11" fill="#4B5163">Boosting</text>
+
+            <rect x="380" y="128.7" width="90" height="81.3" fill="#9C7A2E"></rect>
+            <text x="425" y="118" text-anchor="middle" font-weight="600">0.6816</text>
+            <text x="425" y="232" text-anchor="middle" font-size="11" fill="#4B5163">XGBoost</text>
+
+            <rect x="520" y="139.7" width="90" height="70.3" fill="#14182A"></rect>
+            <text x="565" y="129" text-anchor="middle" font-weight="600">0.6797</text>
+            <text x="565" y="232" text-anchor="middle" font-size="11" fill="#4B5163">Random</text>
+            <text x="565" y="246" text-anchor="middle" font-size="11" fill="#4B5163">Forest</text>
+          </g>
+        </svg>
+        <div class="chart-caption">Test AUC by model (tuned). Gold = best individual score, still statistically indistinguishable from the rest.</div>
+      </div>
+
+      <div class="panel-grid reveal">
+        <div class="panel">
+          <h3>Finding: a feature ceiling, not a model ceiling</h3>
+          <p>All four models — spanning linear, boosting, and bagging mechanisms — converge to the same narrow 0.680–0.684 AUC band. Tuning made both tree ensembles slightly <em>worse</em> than their untuned baselines, a repeatable pattern across two separate models, not noise.</p>
+        </div>
+        <div class="panel">
+          <h3>Champion selected: Logistic Regression</h3>
+          <p>No accuracy was traded away for interpretability, since none was on the table. Directly interpretable coefficients are also the more defensible choice under ECOA / Regulation B.</p>
+        </div>
+      </div>
+
+      <div class="note reveal">Known gap, disclosed rather than hidden: the claim that all four models are "statistically indistinguishable" was never backed by a formal significance test (e.g. a bootstrap confidence interval on the AUC differences) — a reasonable interpretation of a small gap, not a proven result.</div>
+    </section>
+
+    <section class="section" id="calibration">
+      <div class="section-tag">§04 — Calibration</div>
+      <h2 class="reveal">A bug that would have passed a normal review</h2>
+      <p class="lede reveal">The uncalibrated model had a strong AUC (0.68) — good ranking. But its raw predicted probabilities were worse than simply guessing the average default rate for every applicant.</p>
+
+      <div class="stat-row reveal">
+        <div class="stat">
+          <div class="num correction">0.2255</div>
+          <div class="cap">Brier score before calibration — worse than a naive baseline guess</div>
+        </div>
+        <div class="stat">
+          <div class="num approved">0.1206</div>
+          <div class="cap">Brier score after isotonic calibration, on a held-out set</div>
+        </div>
+        <div class="stat">
+          <div class="num gold">46%</div>
+          <div class="cap">reduction in prediction error, with AUC essentially unchanged (0.6811 → 0.6806)</div>
+        </div>
+      </div>
+
+      <div class="note reveal"><strong>Root cause:</strong> <code>class_weight="balanced"</code>, needed to help the model learn from an imbalanced dataset (~14% default rate), was systematically inflating predicted probabilities. Ranking stayed good; the actual numbers were roughly double the truth. Caught before it could corrupt any downstream pricing calculation.</div>
+    </section>
+
+    <section class="section" id="findings">
+      <div class="section-tag">§05 — Flagship Finding</div>
+      <h2 class="reveal">Second-look expansion of declined applicants</h2>
+      <p class="lede reveal">A PD model trained only on approved loans systematically underestimates risk when applied to declined applicants — they differ on unobserved factors, not just visible ones. A Heckman two-stage reject-inference correction was applied to 1.3 million real declined applicants (2007–2013) to correct for this.</p>
+
+      <div class="stat-row two reveal">
+        <div class="stat">
+          <div class="num approved">878,744</div>
+          <div class="cap">additional applicants identified as safe to approve</div>
+        </div>
+        <div class="stat">
+          <div class="num gold">$1.15B</div>
+          <div class="cap">expected incremental profit — validated against real backtested dollar outcomes, not assumptions</div>
+        </div>
+      </div>
+
+      <div class="note reveal">Stated limitation: reject inference can never be verified against real outcomes, because declined applicants' true performance is never observed. Internal statistical consistency (a significant Mills ratio, the correction moving in the theoretically predicted direction) is the strongest evidence this method can offer — not proof of predictive accuracy.</div>
+    </section>
+
+    <section class="section" id="rigor">
+      <div class="section-tag">§06 — Process Rigor</div>
+      <h2 class="reveal">Two conclusions that were wrong at first</h2>
+      <p class="lede reveal">This is the part of the case file most worth reading closely. Both of these were caught and corrected before they became a final answer — through independent verification, not luck.</p>
+
+      <div class="correction-block reveal">
+        <div class="kicker">Correction 01 — a silent convergence failure reversed a finding</div>
+        <div class="steps">
+          <div class="step"><div class="n">1</div><div class="t">A probit selection-bias correction failed to converge (35-iteration statsmodels default) — but failed silently, returning a plausible-looking result instead of an error.</div></div>
+          <div class="step"><div class="n">2</div><div class="t">Caught by reading a console warning, not by assuming the fit had worked.</div></div>
+          <div class="step"><div class="n">3</div><div class="t">Fixed with a layered retry strategy: Newton's method → BFGS → L-BFGS, each attempt's convergence explicitly checked and logged.</div></div>
+          <div class="step final"><div class="n">4</div><div class="t">The properly converged result told the <strong>opposite</strong> story — the naive-to-corrected shift reversed direction entirely.</div></div>
+        </div>
+      </div>
+
+      <div class="correction-block reveal" style="margin-top:20px;">
+        <div class="kicker">Correction 02 — an unexamined assumption understated the opportunity by half</div>
+        <div class="redline">
+          <span class="old">$612.0M</span>
+          <span class="arrow">→</span>
+          <span class="new">$1,171.5M</span>
+        </div>
+        <div class="steps">
+          <div class="step"><div class="n">1</div><div class="t">A 5:1 cost ratio (false-negative vs. false-positive cost) was inherited unexamined from an earlier, unrelated practice dataset.</div></div>
+          <div class="step"><div class="n">2</div><div class="t">A real-dollar backtest (§07) showed this ratio would have destroyed value relative to doing nothing.</div></div>
+          <div class="step"><div class="n">3</div><div class="t">The correct ratio (≈1.6:1) was already sitting in this project's own empirically-derived loss and margin figures — just never propagated back.</div></div>
+          <div class="step final"><div class="n">4</div><div class="t">Re-deriving the threshold from real dollars nearly <strong>doubled</strong> the validated opportunity.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="validation">
+      <div class="section-tag">§07 — Real-Dollar Validation</div>
+      <h2 class="reveal">Backtesting against known, real outcomes</h2>
+      <p class="lede reveal">Unlike the declined pool, the accepted test set has <em>known</em> outcomes — enabling a genuine backtest instead of an assumption-based estimate.</p>
+
+      <div class="chart-block reveal">
+        <svg viewBox="0 0 640 260" width="100%" role="img" aria-label="Bar chart: total realized profit on the test population. Actual historical $277.5M, flawed 5 to 1 assumption $180.2M, real profit-maximizing threshold $277.5M.">
+          <line x1="60" y1="210" x2="620" y2="210" stroke="#C4C6BC" stroke-width="1"></line>
+          <g font-family="IBM Plex Mono" font-size="12" fill="#14182A">
+            <rect x="110" y="46.4" width="120" height="163.6" fill="#9C7A2E"></rect>
+            <text x="170" y="36" text-anchor="middle" font-weight="600">$277.5M</text>
+            <text x="170" y="232" text-anchor="middle" font-size="11" fill="#4B5163">Actual historical</text>
+            <text x="170" y="246" text-anchor="middle" font-size="11" fill="#4B5163">(LendingClub)</text>
+
+            <rect x="280" y="104.5" width="120" height="105.5" fill="#9C3B2E"></rect>
+            <text x="340" y="94" text-anchor="middle" font-weight="600">$180.2M</text>
+            <text x="340" y="232" text-anchor="middle" font-size="11" fill="#4B5163">Flawed 5:1</text>
+            <text x="340" y="246" text-anchor="middle" font-size="11" fill="#4B5163">assumption</text>
+
+            <rect x="450" y="46.4" width="120" height="163.6" fill="#14182A"></rect>
+            <text x="510" y="36" text-anchor="middle" font-weight="600">$277.5M</text>
+            <text x="510" y="232" text-anchor="middle" font-size="11" fill="#4B5163">Real profit-max</text>
+            <text x="510" y="246" text-anchor="middle" font-size="11" fill="#4B5163">threshold</text>
+          </g>
+        </svg>
+        <div class="chart-caption">Total realized profit on the test population, three policies compared against the same real outcomes.</div>
+      </div>
+
+      <div class="panel-grid reveal">
+        <div class="panel">
+          <h3>The flawed assumption had a real cost</h3>
+          <p>Applying the inherited 5:1 ratio here would have destroyed $97.3M in value relative to simply approving everyone — a quantified, not hypothetical, cost of an unexamined assumption.</p>
+        </div>
+        <div class="panel">
+          <h3>The corrected model matches reality</h3>
+          <p>The corrected threshold essentially reproduces LendingClub's own historical decisions on this already-screened population — external validation, not just internal consistency.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="compliance">
+      <div class="section-tag">§08 — Compliance By Design</div>
+      <h2 class="reveal">SHAP scores never speak directly to a customer</h2>
+      <p class="lede reveal">ECOA and Regulation B require specific, accurate reasons for declining an applicant — and using a complex algorithm doesn't excuse that requirement. Every explanation passes through a controlled pipeline: <span class="mono">Model → SHAP → validated taxonomy → reason codes</span>.</p>
+
+      <div class="letter reveal">
+        <div class="letter-head">
+          <span>Application API-REQUEST</span>
+          <span class="decision-badge declined">DECLINED</span>
+        </div>
+        <p>This decision was based in part on the following factors:</p>
+        <ul>
+          <li>Income insufficient for amount of credit requested [R06]</li>
+          <li>Requested amount is high relative to ability to repay [R12]</li>
+          <li>Credit score does not meet the minimum required [R02]</li>
+        </ul>
+      </div>
+
+      <div class="note reveal">Design decision, not an oversight: <code>grade</code>, <code>sub_grade</code>, and <code>int_rate</code> are <em>outputs</em> of underwriting, not root causes — deliberately excluded from customer-facing reasons. When SHAP flags a feature with no approved mapping, it's routed to a compliance-review queue rather than silently included or silently dropped. Tested live: <code>purpose</code> and <code>home_ownership</code> were both correctly caught this way during testing.</div>
+    </section>
+
+    <section class="section" id="honesty">
+      <div class="section-tag">§09 — Fairness Finding</div>
+      <h2 class="reveal">An open finding, documented — not hidden</h2>
+      <p class="status-line flag reveal">FOUR-FIFTHS TEST: 0.457 → 0.495 — still fails the 0.8 threshold</p>
+
+      <div class="panel-grid reveal">
+        <div class="panel">
+          <h3>What was found</h3>
+          <p>The second-look expansion model initially failed a disparate-impact test (four-fifths rule) on state-level approval rates. Removing <code>addr_state</code> as a direct model input — the obvious first fix — barely moved the result: 0.457 → 0.495, still failing.</p>
+        </div>
+        <div class="panel">
+          <h3>Why that's actually significant</h3>
+          <p>It means the disparity isn't coming from geography directly — it flows through features correlated with geography (income, credit patterns). This is <em>indirect</em> disparate impact, the harder and more realistic form, precisely because it can't be fixed by deleting one column.</p>
+        </div>
+      </div>
+
+      <div class="note reveal"><strong>Why this was left open rather than "fixed":</strong> real remediation needs feature-level contribution analysis, BISG-based protected-class validation, and legal review of any threshold adjustment — work beyond a single-person portfolio project. Two other findings in this project had already been corrected after moving too fast. Documenting an unresolved problem honestly is a stronger outcome than reporting a third unverified fix.</div>
+    </section>
+
+    <section class="section" id="try">
+      <div class="section-tag">§10 — Try It</div>
+      <h2 class="reveal">Score a real application against the actual trained model</h2>
+      <p class="lede reveal">The scoring endpoint runs the same feature engineering, calibrated model, threshold, and reason-code pipeline described above — live, against real input.</p>
+      <p style="margin-top:22px;">
+        <a href="demo.html" class="btn btn-primary">Open the live demo →</a>
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap-wide">
+    <div class="fnote">Credit Expansion Engine — built on public LendingClub data. Not a real lending product.</div>
+    <div class="flinks">
+      <a href="demo.html">Live demo</a>
+      <a href="#" id="resume-link">Résumé</a>
+      <a href="#" id="github-link">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
