@@ -74,18 +74,18 @@
         <div class="field-grid">
           <div class="f">
             <label for="loan_amnt">Requested loan amount ($)</label>
-            <span class="help">The total amount the applicant is asking to borrow.</span>
-            <input type="number" id="loan_amnt" min="500" step="100" value="12000" required>
+            <span class="help">The total amount the applicant is asking to borrow. <strong>Capped at $40,000</strong> — the real maximum in the training data. Beyond this, the model would be extrapolating into territory it never learned from; we confirmed this directly (a $1.2M test input once returned a nonsensical 0% default probability).</span>
+            <input type="number" id="loan_amnt" min="500" max="40000" step="100" value="12000" required>
           </div>
           <div class="f">
             <label for="int_rate">Interest rate (APR %)</label>
-            <span class="help">The rate assigned to this loan. Higher-risk grades typically carry higher rates.</span>
+            <span class="help">The rate assigned to this loan. Higher-risk grades typically carry higher rates. Limited to 0–40%, the realistic range for consumer loan APRs.</span>
             <input type="number" id="int_rate" min="0" max="40" step="0.01" value="13.5" required>
           </div>
           <div class="f">
             <label for="installment">Monthly installment ($)</label>
-            <span class="help">The fixed monthly payment for a 36-month term at the rate above.</span>
-            <input type="number" id="installment" min="1" step="0.01" value="407.23" required>
+            <span class="help">The fixed monthly payment for a 36-month term at the rate above. Capped at $2,000 — well above what a $40,000 loan at any realistic rate would require, so this only blocks clearly invalid entries.</span>
+            <input type="number" id="installment" min="1" max="2000" step="0.01" value="407.23" required>
           </div>
           <div class="f">
             <label for="purpose">Loan purpose</label>
@@ -120,8 +120,8 @@
         <div class="field-grid">
           <div class="f">
             <label for="annual_inc">Annual income ($)</label>
-            <span class="help">Self-reported gross annual income.</span>
-            <input type="number" id="annual_inc" min="0" step="1000" value="55000" required>
+            <span class="help">Self-reported gross annual income. <strong>Capped at $1,000,000</strong> — same reason as the loan amount: extreme values fall outside what the model was trained on and can't be predicted reliably.</span>
+            <input type="number" id="annual_inc" min="0" max="1000000" step="1000" value="55000" required>
           </div>
           <div class="f">
             <label for="home_ownership">Home ownership</label>
@@ -161,48 +161,48 @@
         <div class="field-grid">
           <div class="f">
             <label for="fico">Estimated FICO score</label>
-            <span class="help">A standard credit bureau score. The model uses the 4-point range LendingClub reports (this value and +4).</span>
+            <span class="help">A standard credit bureau score. The model uses the 4-point range LendingClub reports (this value and +4). Valid range: 300–850, the standard FICO scale — scores outside this range don't exist in practice.</span>
             <input type="number" id="fico" min="300" max="850" step="1" value="682" required>
           </div>
           <div class="f">
             <label for="dti">Debt-to-income ratio (%)</label>
-            <span class="help">Monthly debt payments as a percentage of monthly income. Higher means less room to take on this loan.</span>
+            <span class="help">Monthly debt payments as a percentage of monthly income. Higher means less room to take on this loan. Capped at 100%.</span>
             <input type="number" id="dti" min="0" max="100" step="0.1" value="22.4" required>
           </div>
           <div class="f">
             <label for="revol_util">Revolving credit utilization (%)</label>
-            <span class="help">How much of available revolving credit (e.g. credit cards) is currently in use.</span>
+            <span class="help">How much of available revolving credit (e.g. credit cards) is currently in use. Can exceed 100% in real credit data (over-limit balances, fees) — capped at 150% here to stay within a realistic range.</span>
             <input type="number" id="revol_util" min="0" max="150" step="0.1" value="48.2" required>
           </div>
           <div class="f">
             <label for="revol_bal">Revolving balance ($)</label>
-            <span class="help">Total current balance across revolving credit accounts.</span>
-            <input type="number" id="revol_bal" min="0" step="1" value="9500" required>
+            <span class="help">Total current balance across revolving credit accounts. Capped at $500,000, a generous but sane bound to keep this consistent with the loan sizes ($40K max) the model was actually trained on.</span>
+            <input type="number" id="revol_bal" min="0" max="500000" step="1" value="9500" required>
           </div>
           <div class="f">
             <label for="delinq_2yrs">Delinquencies (past 2 years)</label>
-            <span class="help">Number of past-due payments (30+ days) in the last two years.</span>
-            <input type="number" id="delinq_2yrs" min="0" step="1" value="0" required>
+            <span class="help">Number of past-due payments (30+ days) in the last two years. Capped at 20 — beyond this, an applicant profile is unrealistic rather than merely high-risk.</span>
+            <input type="number" id="delinq_2yrs" min="0" max="20" step="1" value="0" required>
           </div>
           <div class="f">
             <label for="inq_last_6mths">Credit inquiries (past 6 months)</label>
-            <span class="help">Number of times a lender has checked this applicant's credit recently — a lot can signal financial stress.</span>
-            <input type="number" id="inq_last_6mths" min="0" step="1" value="1" required>
+            <span class="help">Number of times a lender has checked this applicant's credit recently — a lot can signal financial stress. Capped at 20.</span>
+            <input type="number" id="inq_last_6mths" min="0" max="20" step="1" value="1" required>
           </div>
           <div class="f">
             <label for="open_acc">Open credit accounts</label>
-            <span class="help">Number of currently open credit lines.</span>
-            <input type="number" id="open_acc" min="0" step="1" value="8" required>
+            <span class="help">Number of currently open credit lines. Capped at 50, a generous real-world maximum.</span>
+            <input type="number" id="open_acc" min="0" max="50" step="1" value="8" required>
           </div>
           <div class="f">
             <label for="total_acc">Total credit accounts (lifetime)</label>
-            <span class="help">Total credit lines ever opened, open or closed — a proxy for credit history length.</span>
-            <input type="number" id="total_acc" min="0" step="1" value="18" required>
+            <span class="help">Total credit lines ever opened, open or closed — a proxy for credit history length. Capped at 100.</span>
+            <input type="number" id="total_acc" min="0" max="100" step="1" value="18" required>
           </div>
           <div class="f">
             <label for="pub_rec">Public records</label>
-            <span class="help">Number of derogatory public records (e.g. bankruptcies, liens).</span>
-            <input type="number" id="pub_rec" min="0" step="1" value="0" required>
+            <span class="help">Number of derogatory public records (e.g. bankruptcies, liens). Capped at 10.</span>
+            <input type="number" id="pub_rec" min="0" max="10" step="1" value="0" required>
           </div>
         </div>
       </fieldset>
@@ -239,7 +239,7 @@
 
 <footer class="site-footer">
   <div class="wrap-wide">
-    <div class="fnote">Credit Expansion Engine — built on public LendingClub data. Not a real lending product.</div>
+    <div class="fnote">Credit Expansion Engine — built by Mohsen Alanazi on public LendingClub data. Not a real lending product.</div>
     <div class="flinks">
       <a href="index.html">Case file</a>
     </div>
