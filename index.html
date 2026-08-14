@@ -45,6 +45,8 @@
         <div class="value approved">1, disclosed</div>
       </div>
     </div>
+
+    <div class="byline reveal">Built by Mohsen Alanazi</div>
   </div>
 </header>
 
@@ -69,8 +71,9 @@
 
     <section class="section" id="problem">
       <div class="section-tag">§01 — The Problem</div>
-      <h2 class="reveal">Traditional underwriting leaves money on the table</h2>
-      <p class="lede reveal">A blunt cutoff-based approval policy can't distinguish a borderline-risky applicant from a genuinely bad one — it just declines both. Commercial lenders (Upstart, Zest AI) report expanding approvals at equal or lower loss rates using data-driven decisions rather than a fixed cutoff. This project builds the same capability end to end, on public data, so every step is inspectable.</p>
+      <h2 class="reveal">Most credit-risk projects stop at "predict default"</h2>
+      <p class="lede reveal">Most credit-risk portfolio projects stop at "predict default." This project goes further: it builds a rigorously validated probability-of-default (PD) model, then uses it to answer a sharper business question — how many declined applicants were actually safe to approve, and what would approving them do to the bank's loss rate and profit? Every decision the system makes is wrapped in a compliant, auditable explanation rather than a black-box score.</p>
+      <p class="lede reveal">This mirrors what Upstart and Zest AI run commercially today: expanding credit access at equal or lower loss rates than a traditional cutoff-based policy, using real applicant performance data rather than the original underwriter's proprietary rules.</p>
     </section>
 
     <section class="section" id="scope">
@@ -262,6 +265,25 @@
       <h2 class="reveal">SHAP scores never speak directly to a customer</h2>
       <p class="lede reveal">ECOA and Regulation B require specific, accurate reasons for declining an applicant — and using a complex algorithm doesn't excuse that requirement. Every explanation passes through a controlled pipeline: <span class="mono">Model → SHAP → validated taxonomy → reason codes</span>.</p>
 
+      <div class="steps reveal">
+        <div class="step">
+          <div class="n">1</div>
+          <div class="t"><strong>SHAP</strong> — for a declined application, SHAP identifies exactly which inputs pushed the prediction toward decline, and by how much.</div>
+        </div>
+        <div class="step">
+          <div class="n">2</div>
+          <div class="t"><strong>Validated feature mapping</strong> — each flagged input is checked against an approved list. Circular features (like risk grade, itself an output of underwriting) are excluded. Anything unrecognized is queued for compliance review, never shown to the applicant.</div>
+        </div>
+        <div class="step">
+          <div class="n">3</div>
+          <div class="t"><strong>Approved reason-code taxonomy</strong> — validated inputs are converted into standardized codes (e.g. R02, R06) drawn from a fixed, pre-approved list — never invented by the model on the fly.</div>
+        </div>
+        <div class="step final">
+          <div class="n">4</div>
+          <div class="t">Plain-language explanation — the matched codes become the specific, accurate reasons required under ECOA / Regulation B: what you actually see when an application is declined.</div>
+        </div>
+      </div>
+
       <div class="letter reveal">
         <div class="letter-head">
           <span>Application API-REQUEST</span>
@@ -311,7 +333,7 @@
 
 <footer class="site-footer">
   <div class="wrap-wide">
-    <div class="fnote">Credit Expansion Engine — built on public LendingClub data. Not a real lending product.</div>
+    <div class="fnote">Credit Expansion Engine — built by Mohsen Alanazi on public LendingClub data. Not a real lending product.</div>
     <div class="flinks">
       <a href="demo.html">Live demo</a>
       <a href="#" id="resume-link">Résumé</a>

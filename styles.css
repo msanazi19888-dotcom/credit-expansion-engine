@@ -144,6 +144,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .case-meta .field .value.gold { color: var(--gold); }
 .case-meta .field .value.approved { color: var(--approved); }
 
+.byline {
+  font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--gold);
+  margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--rule-strong);
+}
+
 @media (max-width: 720px) {
   .case-meta { grid-template-columns: repeat(2, 1fr); }
 }

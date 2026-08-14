@@ -127,6 +127,33 @@ const API_BASE_URL = "https://credit-expansion-engine-api.onrender.com";
       unmappedHtml = `<div class="note" style="margin-top:14px;">Flagged for compliance review (not shown to applicant): ${data.unmapped_features_flagged_for_review.map(escapeHtml).join(", ")}</div>`;
     }
 
+    const step4Text = approved
+      ? "Plain-language explanation — approvals don't require an adverse-action explanation under ECOA (only declines do), which is why no reason codes are generated here."
+      : "Plain-language explanation — the matched codes above are the specific, accurate reasons required under ECOA / Regulation B.";
+
+    const explainerHtml = `
+      <div class="how-panel" style="margin-top:16px;">
+        <h3 style="margin-bottom:4px;">Why this decision</h3>
+        <div class="steps">
+          <div class="step">
+            <div class="n">1</div>
+            <div class="t"><strong>SHAP</strong> identified which of your inputs most influenced this specific prediction.</div>
+          </div>
+          <div class="step">
+            <div class="n">2</div>
+            <div class="t"><strong>Validated feature mapping</strong> checked each flagged input against an approved list — anything unrecognized would be queued for compliance review, not shown to you.</div>
+          </div>
+          <div class="step">
+            <div class="n">3</div>
+            <div class="t"><strong>Approved reason-code taxonomy</strong> converted validated inputs into the standardized codes ${approved ? "used only when an application is declined" : "shown above"}.</div>
+          </div>
+          <div class="step final">
+            <div class="n">4</div>
+            <div class="t">${step4Text}</div>
+          </div>
+        </div>
+      </div>`;
+
     container.innerHTML = `
       <div class="result-card">
         <div class="letter-head" style="border:none; padding:0; margin:0;">
@@ -141,7 +168,8 @@ const API_BASE_URL = "https://credit-expansion-engine-api.onrender.com";
         </div>
         ${reasonsHtml}
         ${unmappedHtml}
-      </div>`;
+      </div>
+      ${explainerHtml}`;
   }
 
   function escapeHtml(str) {
