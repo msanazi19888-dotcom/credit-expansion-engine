@@ -131,6 +131,31 @@ const API_BASE_URL = "https://credit-expansion-engine-api.onrender.com";
       ? "Plain-language explanation — approvals don't require an adverse-action explanation under ECOA (only declines do), which is why no reason codes are generated here."
       : "Plain-language explanation — the matched codes above are the specific, accurate reasons required under ECOA / Regulation B.";
 
+    const pdExplainerHtml = `
+      <div class="how-panel" style="margin-top:16px;">
+        <h3 style="margin-bottom:4px;">What does ${pdPct}% actually mean?</h3>
+        <p style="font-size:13px; color:var(--ink-soft); line-height:1.6; margin:8px 0;">
+          This is a <strong>calibrated</strong> estimate of this specific applicant's probability of
+          default — not a raw model score, and not a guess. Of applicants who receive an estimate
+          around ${pdPct}%, roughly that share actually defaulted among the real historical loans
+          this model was validated against.
+        </p>
+        <p style="font-size:13px; color:var(--ink-soft); line-height:1.6; margin:8px 0;">
+          <strong>Why calibration matters:</strong> a model can rank risk correctly while still getting
+          the actual number wrong. This project found and fixed exactly that case — before calibration,
+          the raw predicted probabilities were less accurate than simply guessing the average default
+          rate for every applicant, even though the model's risk <em>ranking</em> was already good.
+        </p>
+        <p style="font-size:13px; color:var(--ink-soft); line-height:1.6; margin:8px 0;">
+          <strong>Why ${thresholdPct}% is the cutoff, not 50%:</strong> this isn't a round assumption —
+          it's the specific threshold that maximized real dollar profit when backtested against known
+          historical loan outcomes on a real test population.
+        </p>
+        <a href="index.html#calibration" style="font-family:var(--mono); font-size:12px; color:var(--gold);">
+          Full calibration methodology in the case file →
+        </a>
+      </div>`;
+
     const explainerHtml = `
       <div class="how-panel" style="margin-top:16px;">
         <h3 style="margin-bottom:4px;">Why this decision</h3>
@@ -169,6 +194,7 @@ const API_BASE_URL = "https://credit-expansion-engine-api.onrender.com";
         ${reasonsHtml}
         ${unmappedHtml}
       </div>
+      ${pdExplainerHtml}
       ${explainerHtml}`;
   }
 
