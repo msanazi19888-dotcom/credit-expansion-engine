@@ -161,8 +161,8 @@
         <div class="field-grid">
           <div class="f">
             <label for="fico">Estimated FICO score</label>
-            <span class="help">A standard credit bureau score. The model uses the 4-point range LendingClub reports (this value and +4). Valid range: 300–850, the standard FICO scale — scores outside this range don't exist in practice.</span>
-            <input type="number" id="fico" min="300" max="850" step="1" value="682" required>
+            <span class="help">A standard credit bureau score. The model uses the 4-point range LendingClub reports (this value and +4). Valid range: 300–846 here (not 850) — 850 is the true ceiling of the FICO scale, so a 4-point bucket starting there would exceed it; 846–850 is the highest real bucket.</span>
+            <input type="number" id="fico" min="300" max="846" step="1" value="682" required>
           </div>
           <div class="f">
             <label for="dti">Debt-to-income ratio (%)</label>
